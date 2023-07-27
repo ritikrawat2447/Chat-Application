@@ -1,16 +1,19 @@
 package com.example.android.chatapplication
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.android.chatapplication.databinding.ActivityCreateUserBinding
 import com.example.android.chatapplication.models.ProfileDetails
 import com.google.firebase.auth.FirebaseAuth
@@ -47,9 +50,6 @@ class CreateUserActivity : AppCompatActivity() {
         setContentView(binding.root)
 
 
-//        val createuserbtn : Button = findViewById(R.id.createUserBtn)
-//        val profilePhoto : ImageView = findViewById(R.id.userProfilePhoto)
-
 
         binding.createSpinner.visibility = View.INVISIBLE
 
@@ -57,6 +57,8 @@ class CreateUserActivity : AppCompatActivity() {
             val userName = binding.createUserNameTxt.text.toString()
             val email = binding.createEmailTxt.text.toString()
             val password = binding.createPasswordTxt.text.toString()
+
+            hideKeyboard()
 
             if ( userName.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty() && imageUrl != null ) {
                 enableSpinner(true)
@@ -92,6 +94,7 @@ class CreateUserActivity : AppCompatActivity() {
         }
 
         binding.userProfilePhoto.setOnClickListener {
+            hideKeyboard()
             val intent = Intent("android.intent.action.GET_CONTENT")
             intent.type = "image/*"
             launchGalleryActivity.launch(intent)
@@ -150,6 +153,8 @@ class CreateUserActivity : AppCompatActivity() {
                 enableSpinner(false)
                 val loginIntent = Intent(this, NewLoginActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                val userDataChange = Intent(BROADCASTCAST_USER_DATA_CAHNGE)
+                LocalBroadcastManager.getInstance(this).sendBroadcast(userDataChange)
                 startActivity(loginIntent)
                 finish()
             }
@@ -165,6 +170,12 @@ class CreateUserActivity : AppCompatActivity() {
             currentUserId = currentUser.uid
         }
         return currentUserId
+    }
+    fun hideKeyboard(){
+        val inputManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        if ( inputManager.isAcceptingText ){
+            inputManager.hideSoftInputFromWindow(currentFocus!!.windowToken,0)
+        }
     }
 
 }

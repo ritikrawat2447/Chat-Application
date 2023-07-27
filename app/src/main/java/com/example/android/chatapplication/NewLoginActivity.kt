@@ -1,11 +1,14 @@
 package com.example.android.chatapplication
 
 import android.content.ContentValues.TAG
+import android.content.Context
 import android.content.Intent
+import android.hardware.input.InputManager
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.example.android.chatapplication.databinding.ActivityCreateUserBinding
@@ -29,6 +32,7 @@ class NewLoginActivity : AppCompatActivity() {
         const val KEY = "LoginActivity.mail"
         const val KEY1 = "LoginActivity.image"
         const val KEY2 = "LoginActivity.name"
+        const val KEY3 = ""
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,7 +50,7 @@ class NewLoginActivity : AppCompatActivity() {
 
             val email = binding.loginemailtxt.text.toString()
             val password = binding.loginpasswordtxt.text.toString()
-
+            hideKeyboard()
             if ( email.isNotEmpty() && password.isNotEmpty() ) {
                 enableSpinner(true)
                 FirebaseAuth.getInstance().signInWithEmailAndPassword(email,password)
@@ -91,14 +95,14 @@ class NewLoginActivity : AppCompatActivity() {
             .addOnSuccessListener { document ->
                 if (document != null) {
                     val loggedInUser = document.toObject(ProfileDetails::class.java)!!
-                    ProfileDetails(loggedInUser.email,loggedInUser.img,loggedInUser.userName)
-//                    val Pd = ProfileDetails()
-//                    Toast.makeText(this,"DocumentSnapshot data: ${document.data}",Toast.LENGTH_SHORT).show()
+                    val Pd = ProfileDetails(loggedInUser.email,loggedInUser.img,loggedInUser.userName)
+                    Toast.makeText(this,"DocumentSnapshot data: ${document.data}" ,Toast.LENGTH_SHORT).show()
                     enableSpinner(false)
                     val mainIntent = Intent(this, MainActivity::class.java)
                     mainIntent.putExtra(KEY,loggedInUser.email)
                     mainIntent.putExtra(KEY1,loggedInUser.img)
                     mainIntent.putExtra(KEY2,loggedInUser.userName)
+                    mainIntent.putExtra(KEY3,"LOGIN")
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     startActivity(mainIntent)
                 } else {
@@ -120,6 +124,7 @@ class NewLoginActivity : AppCompatActivity() {
         binding.loginnewuserbtn.isEnabled = !enable
         binding.loginloginbtn.isEnabled = !enable
     }
+
     fun getCurrentUUID() : String{
         val currentUser = FirebaseAuth.getInstance().currentUser
         var currentUserId = ""
@@ -127,5 +132,11 @@ class NewLoginActivity : AppCompatActivity() {
             currentUserId = currentUser.uid
         }
         return currentUserId
+    }
+    fun hideKeyboard(){
+        val inputManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        if ( inputManager.isAcceptingText ){
+            inputManager.hideSoftInputFromWindow(currentFocus!!.windowToken,0)
+        }
     }
 }
